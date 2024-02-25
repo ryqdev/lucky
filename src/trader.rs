@@ -2,6 +2,8 @@ use std::io::Read;
 use std::string::ToString;
 use log;
 use error_chain::error_chain;
+use serde_json::{Value};
+
 
 error_chain! {
     foreign_links {
@@ -83,6 +85,8 @@ impl StrategyEngine {
             String::from( ERROR_FETCH_DATA)
         });
 
+        let price = self.fetch_price_from_json(body);
+
         if body !=  ERROR_FETCH_DATA {
             log::info!("Fetch: {}", body);
         }
@@ -97,6 +101,12 @@ impl StrategyEngine {
                 price_list: vec![],
             },
         }
+    }
+
+    fn fetch_price_from_json(&self, body: String) -> Result<()> {
+        let v: Value = serde_json::from_str(&body)?;
+        println!("price: {}", v["price"]);
+        Ok(())
     }
 
     fn fetch_price(&self) -> Result<String> {

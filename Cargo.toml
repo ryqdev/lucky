@@ -10,4 +10,5 @@ log = "0.4.20"
 env_logger = "0.11.2"
 reqwest = { version = "0.11.24",features = ["blocking"]  }
 error-chain = "0.12.4"
+serde_json = "1.0.114"
 
