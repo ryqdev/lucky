@@ -1,6 +1,13 @@
 use std::os::macos::raw::time_t;
+use log;
 
 fn main() {
+    let operation_system = OperationEngine::new();
+    operation_system.run();
+
+    let strategy = Strategy::new(5.0, 5.0);
+    let engine = StrategyEngine::new(strategy);
+    engine.run();
 }
 
 const BTC_USDT: &str = "BTC_USDT";
@@ -11,10 +18,31 @@ enum BidAsk{
     ASK
 }
 
-trait Strategy {
-    // fn new() -> Self
-    //     where
-    //         Self: Sized;
+struct Strategy{
+    risk_rate: f32,
+    expected_annual_return: f32
+}
+
+impl Strategy{
+    pub fn new(r: f32, e: f32) -> Strategy {
+        Strategy{ risk_rate: r, expected_annual_return: e }
+    }
+}
+
+struct StrategyEngine {
+    strategy: Strategy
+}
+
+impl StrategyEngine {
+    pub fn new(s: Strategy) -> StrategyEngine {
+        StrategyEngine{
+            strategy: s
+        }
+    }
+
+    pub fn run(){
+        log::info!("StrategyEngine is running")
+    }
 
     fn fetch_market_data() -> MarketData{
         MarketData{
@@ -29,29 +57,34 @@ trait Strategy {
         }
     }
 
-    fn send_order() -> Order {
+    fn send_order() -> Order{
         Order{
-            id: "order".to_string(),
+            id: "test".to_string(),
             timestamp: 0,
             bid_ask: BidAsk::BID,
             volume: 0,
-            symbol: BTC_USDT,
+            symbol: BTC_USDT.to_string(),
         }
     }
 }
 
-trait Operation {
-    // fn new() -> Self
-    //     where
-    //         Self: Sized;
-    fn bid() {
+struct OperationEngine {}
+
+impl OperationEngine{
+    pub fn new() -> OperationEngine {
+        OperationEngine{}
+    }
+    pub fn run() {
+        log::info!("OperationEngine is running")
+    }
+    fn bid(){
 
     }
-    fn ask() {
+    fn ask(){
 
     }
-    fn isfilled() -> bool {
-        return true
+    fn isfilled() -> bool{
+        false
     }
 }
 
@@ -60,7 +93,7 @@ struct Order{
     timestamp: time_t,
     bid_ask: BidAsk,
     volume: i32,
-    symbol: *str
+    symbol: String
 }
 
 struct MarketData {
