@@ -104,3 +104,12 @@ struct OrderBook {
     ask_volume_list:Vec<i32>,
     price_list:Vec<i32>
 }
+
+struct Portfolio {
+    balance: f32,
+    gain: f32,
+    alpha: f32,
+    beta:f32,
+    sharp:f32,
+    max_withdraw: f32,
+}
