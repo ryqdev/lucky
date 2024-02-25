@@ -1,4 +1,14 @@
+use std::io::Read;
 use log;
+use error_chain::error_chain;
+
+error_chain! {
+    foreign_links {
+        Io(std::io::Error);
+        HttpRequest(reqwest::Error);
+    }
+}
+
 
 const BTC_USDT: &str = "BTC_USDT";
 const BINANCE_PRICE_API: &str = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
@@ -59,9 +69,18 @@ impl StrategyEngine {
 
     pub fn run(&self){
         log::info!("StrategyEngine is running, the strategy is {:?}", self.strategy);
+        loop{
+            self.fetch_market_data();
+        }
     }
 
-    fn fetch_market_data() -> MarketData{
+    fn fetch_market_data(&self) -> MarketData{
+        let body = self.fetch_price().unwrap_or_else(|error| {
+            log::error!("fetch price failed, error: {}", error);
+            String::from("Error fetching price")
+        });
+        log::info!("Fetch: {}", body);
+
         MarketData{
             symbol: BTC_USDT.to_string(),
             timestamp: 0,
@@ -74,6 +93,15 @@ impl StrategyEngine {
         }
     }
 
+    fn fetch_price(&self) -> Result<String> {
+        let mut res = reqwest::blocking::get("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT")?;
+        let mut body = String::new();
+        res.read_to_string(&mut body)?;
+
+        Ok(body)
+    }
+
+
     fn send_order() -> Order{
         Order{
             id: "test".to_string(),
@@ -84,6 +112,8 @@ impl StrategyEngine {
         }
     }
 }
+
+
 
 struct Order{
     id: String,
