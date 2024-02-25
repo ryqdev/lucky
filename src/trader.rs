@@ -1,4 +1,5 @@
 use std::io::Read;
+use std::string::ToString;
 use log;
 use error_chain::error_chain;
 
@@ -13,6 +14,8 @@ error_chain! {
 const BTC_USDT: &str = "BTC_USDT";
 const BINANCE_PRICE_API: &str = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
 const BINANCE_ORDER_API: &str = "";
+
+const ERROR_FETCH_DATA: &str = "Error fetching price";
 
 #[derive(Debug)]
 pub struct OperationEngine {
@@ -77,9 +80,12 @@ impl StrategyEngine {
     fn fetch_market_data(&self) -> MarketData{
         let body = self.fetch_price().unwrap_or_else(|error| {
             log::error!("fetch price failed, error: {}", error);
-            String::from("Error fetching price")
+            String::from( ERROR_FETCH_DATA)
         });
-        log::info!("Fetch: {}", body);
+
+        if body !=  ERROR_FETCH_DATA {
+            log::info!("Fetch: {}", body);
+        }
 
         MarketData{
             symbol: BTC_USDT.to_string(),
