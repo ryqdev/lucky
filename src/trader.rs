@@ -1,7 +1,8 @@
 use log;
 
 const BTC_USDT: &str = "BTC_USDT";
-const BINANCE_API: &str = "BINANCE_API";
+const BINANCE_PRICE_API: &str = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
+const BINANCE_ORDER_API: &str = "";
 
 #[derive(Debug)]
 pub struct OperationEngine {
@@ -10,7 +11,7 @@ pub struct OperationEngine {
 
 impl OperationEngine{
     pub fn new() -> OperationEngine {
-        OperationEngine{exchange_api:BINANCE_API.to_string()}
+        OperationEngine{exchange_api:BINANCE_ORDER_API.to_string()}
     }
     pub fn run(&self) {
         log::info!("OperationEngine is running, configuration is {:?}", &self);
@@ -25,7 +26,6 @@ impl OperationEngine{
         false
     }
 }
-
 
 #[derive(Debug)]
 pub struct Strategy{
@@ -44,15 +44,16 @@ enum BidAsk{
     ASK
 }
 
-
 pub struct StrategyEngine {
-    strategy: Strategy
+    strategy: Strategy,
+    market_data_api: String
 }
 
 impl StrategyEngine {
     pub fn new(s: Strategy) -> StrategyEngine {
         StrategyEngine{
-            strategy: s
+            strategy: s,
+            market_data_api: BINANCE_PRICE_API.to_string()
         }
     }
 

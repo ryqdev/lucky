@@ -1,5 +1,5 @@
 mod trader;
-use trader::{OperationEngine, Strategy, StrategyEngine};
+use trader::{Strategy, StrategyEngine};
 
 fn main() {
     env_logger::init();
