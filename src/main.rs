@@ -1,4 +1,3 @@
-use std::os::macos::raw::time_t;
 use log;
 
 fn main() {
@@ -11,13 +10,14 @@ fn main() {
 }
 
 const BTC_USDT: &str = "BTC_USDT";
-const ETH_USDT: &str = "ETH_USDT";
+const BINANCE_API: &str = "BINANCE_API";
 
 enum BidAsk{
     BID,
     ASK
 }
 
+#[derive(Debug)]
 struct Strategy{
     risk_rate: f32,
     expected_annual_return: f32
@@ -40,8 +40,8 @@ impl StrategyEngine {
         }
     }
 
-    pub fn run(){
-        log::info!("StrategyEngine is running")
+    pub fn run(&self){
+        println!("StrategyEngine is running, the strategy is {:?}", self.strategy);
     }
 
     fn fetch_market_data() -> MarketData{
@@ -68,14 +68,17 @@ impl StrategyEngine {
     }
 }
 
-struct OperationEngine {}
+#[derive(Debug)]
+struct OperationEngine {
+    exchange_api: String
+}
 
 impl OperationEngine{
     pub fn new() -> OperationEngine {
-        OperationEngine{}
+        OperationEngine{exchange_api:BINANCE_API.to_string()}
     }
-    pub fn run() {
-        log::info!("OperationEngine is running")
+    pub fn run(&self) {
+        println!("OperationEngine is running, configuration is {:?}", &self);
     }
     fn bid(){
 
@@ -90,7 +93,7 @@ impl OperationEngine{
 
 struct Order{
     id: String,
-    timestamp: time_t,
+    timestamp: i64,
     bid_ask: BidAsk,
     volume: i32,
     symbol: String
@@ -98,7 +101,7 @@ struct Order{
 
 struct MarketData {
     symbol: String,
-    timestamp: time_t,
+    timestamp: i64,
     price: f32,
     order_book: OrderBook,
 }
