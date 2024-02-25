@@ -488,6 +488,7 @@ dependencies = [
  "error-chain",
  "log",
  "reqwest",
+ "serde",
  "serde_json",
 ]
 

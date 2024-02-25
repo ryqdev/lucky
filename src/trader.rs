@@ -3,6 +3,7 @@ use std::string::ToString;
 use log;
 use error_chain::error_chain;
 use serde_json::{Value};
+use serde::Deserialize;
 
 
 error_chain! {
@@ -18,6 +19,13 @@ const BINANCE_PRICE_API: &str = "https://api.binance.com/api/v3/ticker/price?sym
 const BINANCE_ORDER_API: &str = "";
 
 const ERROR_FETCH_DATA: &str = "Error fetching price";
+const ERROR_PRICE: f32 = -1.0;
+
+#[derive(Deserialize)]
+struct FetchPrice {
+    symbol: String,
+    price: f32
+}
 
 #[derive(Debug)]
 pub struct OperationEngine {
@@ -85,11 +93,17 @@ impl StrategyEngine {
             String::from( ERROR_FETCH_DATA)
         });
 
-        let price = self.fetch_price_from_json(body);
-
         if body !=  ERROR_FETCH_DATA {
             log::info!("Fetch: {}", body);
         }
+
+        let price = self.fetch_price_from_json(&body).unwrap_or_else(|error| {
+            log::error!("parse json failed, error: {}", error);
+            // ERROR_PRICE
+        } );
+        // if price != ERROR_PRICE {
+        //     log::info!("Price: {}", price);
+        // }
 
         MarketData{
             symbol: BTC_USDT.to_string(),
@@ -103,9 +117,9 @@ impl StrategyEngine {
         }
     }
 
-    fn fetch_price_from_json(&self, body: String) -> Result<()> {
-        let v: Value = serde_json::from_str(&body)?;
-        println!("price: {}", v["price"]);
+    fn fetch_price_from_json(&self, body: &str) -> serde_json::Result<()> {
+        let fp: FetchPrice = serde_json::from_str(body)?;
+        println!("price: {}", fp.price);
         Ok(())
     }
 
