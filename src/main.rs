@@ -1,5 +1,12 @@
-mod trader;
-use trader::{Strategy, StrategyEngine, Account};
+mod common;
+mod account;
+mod strategy;
+mod strategy_engine;
+mod operation_engine;
+
+use strategy::Strategy;
+use strategy_engine::StrategyEngine;
+use account::Account;
 
 fn main() {
     env_logger::init();
