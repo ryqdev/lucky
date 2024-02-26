@@ -24,7 +24,7 @@ const ERROR_PRICE: f32 = -1.0;
 #[derive(Deserialize)]
 struct FetchPrice {
     symbol: String,
-    price: f32
+    price: String
 }
 
 #[derive(Debug)]
@@ -99,11 +99,11 @@ impl StrategyEngine {
 
         let price = self.fetch_price_from_json(&body).unwrap_or_else(|error| {
             log::error!("parse json failed, error: {}", error);
-            // ERROR_PRICE
+            ERROR_PRICE
         } );
-        // if price != ERROR_PRICE {
-        //     log::info!("Price: {}", price);
-        // }
+        if price != ERROR_PRICE {
+            log::info!("Price: {}", price);
+        }
 
         MarketData{
             symbol: BTC_USDT.to_string(),
@@ -117,10 +117,9 @@ impl StrategyEngine {
         }
     }
 
-    fn fetch_price_from_json(&self, body: &str) -> serde_json::Result<()> {
+    fn fetch_price_from_json(&self, body: &str) -> serde_json::Result<(f32)> {
         let fp: FetchPrice = serde_json::from_str(body)?;
-        println!("price: {}", fp.price);
-        Ok(())
+        Ok((fp.price).parse().unwrap())
     }
 
     fn fetch_price(&self) -> Result<String> {
