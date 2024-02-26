@@ -1,9 +1,11 @@
 use std::io::Read;
+use std::os::unix::raw::off_t;
 use std::string::ToString;
 use log;
 use error_chain::error_chain;
 use serde_json::{Value};
 use serde::Deserialize;
+use crate::trader::BidAsk::{ASK, BID};
 
 
 error_chain! {
@@ -20,6 +22,9 @@ const BINANCE_ORDER_API: &str = "";
 
 const ERROR_FETCH_DATA: &str = "Error fetching price";
 const ERROR_PRICE: f32 = -1.0;
+
+const LOWER_BOUND_PRICE: f32 = 50000.0;
+const UPPER_BOUND_PRICE: f32 = 52000.0;
 
 #[derive(Deserialize)]
 struct FetchPrice {
@@ -39,16 +44,36 @@ impl OperationEngine{
     pub fn run(&self) {
         log::info!("OperationEngine is running, configuration is {:?}", &self);
     }
-    fn bid(){
-
+    // TODO: use polymorphism for bid and ask?
+    pub fn bid(&self, order: Order){
+        let balance = self.get_balance();
+        if balance >= order.volume {
+            self.place_order(order);
+        }
     }
-    fn ask(){
-
+    pub fn ask(&self, order: Order){
+        let position = self.get_position();
+        if position >= order.volume {
+            self.place_order(order);
+        }
     }
     fn isfilled() -> bool{
         false
     }
+    fn get_balance(&self) -> f32 {
+        return 100.0
+    }
+
+    fn get_position(&self) -> f32 {
+        return 100.0
+    }
+
+    fn place_order(&self, order: Order) {
+        // send to banance
+        log::info!("send order: {:?}", order)
+    }
 }
+
 
 #[derive(Debug)]
 pub struct Strategy{
@@ -62,6 +87,7 @@ impl Strategy{
     }
 }
 
+#[derive(PartialEq, Debug)]
 enum BidAsk{
     BID,
     ASK
@@ -83,7 +109,24 @@ impl StrategyEngine {
     pub fn run(&self){
         log::info!("StrategyEngine is running, the strategy is {:?}", self.strategy);
         loop{
-            self.fetch_market_data();
+            let market_data = self.fetch_market_data();
+            if market_data.price < LOWER_BOUND_PRICE {
+                self.send_order(Order{
+                    id: "test_bid".to_string(),
+                    timestamp: 0,
+                    bid_ask: BidAsk::BID,
+                    volume: 1.0,
+                    symbol: BTC_USDT.to_string(),
+                })
+            } else if market_data.price > UPPER_BOUND_PRICE {
+                self.send_order(Order{
+                    id: "test_ask".to_string(),
+                    timestamp: 0,
+                    bid_ask: BidAsk::ASK,
+                    volume: 1.0,
+                    symbol: BTC_USDT.to_string(),
+                })
+            }
         }
     }
 
@@ -101,6 +144,7 @@ impl StrategyEngine {
             log::error!("parse json failed, error: {}", error);
             ERROR_PRICE
         } );
+
         if price != ERROR_PRICE {
             log::info!("Price: {}", price);
         }
@@ -108,7 +152,7 @@ impl StrategyEngine {
         MarketData{
             symbol: BTC_USDT.to_string(),
             timestamp: 0,
-            price: 0.0,
+            price,
             order_book: OrderBook {
                 bid_volume_list: vec![],
                 ask_volume_list: vec![],
@@ -130,25 +174,27 @@ impl StrategyEngine {
         Ok(body)
     }
 
-
-    fn send_order() -> Order{
-        Order{
-            id: "test".to_string(),
-            timestamp: 0,
-            bid_ask: BidAsk::BID,
-            volume: 0,
-            symbol: BTC_USDT.to_string(),
+    fn send_order(&self, order: Order){
+        //TODO: new an OperationEngine whenever send order? Might be not suitable
+        let op = OperationEngine::new();
+        if order.bid_ask == BID {
+            op.bid(order)
+        } else if order.bid_ask == ASK{
+            op.ask(order)
+        } else {
+            log::error!("Unknown order type")
         }
     }
 }
 
 
 
+#[derive(Debug)]
 struct Order{
     id: String,
     timestamp: i64,
     bid_ask: BidAsk,
-    volume: i32,
+    volume: f32,
     symbol: String
 }
 
