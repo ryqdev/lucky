@@ -1,6 +1,8 @@
 use std::io::Read;
+use std::{thread, time};
 use error_chain::error_chain;
 use serde::Deserialize;
+use crate::account::Account;
 use crate::operation_engine::OperationEngine;
 use crate::strategy::Strategy;
 
@@ -13,11 +15,12 @@ error_chain! {
 }
 
 #[derive(Debug)]
-pub(crate) struct Order{
+pub struct Order{
     id: String,
     timestamp: i64,
-    bid_ask: crate::common::BidAsk,
+    pub(crate) bid_ask: crate::common::BidAsk,
     pub(crate) volume: f32,
+    pub(crate) price: f32,
     symbol: String
 }
 
@@ -42,43 +45,50 @@ struct FetchPrice {
     price: String
 }
 
-
-
 pub struct StrategyEngine {
     strategy: Strategy,
+    account: Account,
     market_data_api: String
 }
 
-
 impl StrategyEngine {
-    pub fn new(s: Strategy) -> StrategyEngine {
+    pub fn new(s: Strategy, a: Account) -> StrategyEngine {
         StrategyEngine{
             strategy: s,
+            account: a,
             market_data_api: crate::common::BINANCE_PRICE_API.to_string()
         }
     }
 
-    pub fn run(&self){
+    pub fn run(&mut self){
         log::info!("StrategyEngine is running, the strategy is {:?}", self.strategy);
+        let mut old_price = 50000.0;
         loop{
             let market_data = self.fetch_market_data();
-            if market_data.price < crate::common::LOWER_BOUND_PRICE {
+            log::info!("Balance is {}", self.account.balance);
+            log::info!("Total Cap is {}", self.account.balance + self.account.position * market_data.price);
+            log::info!("old price is {}, current price is {}", old_price, market_data.price);
+            if (old_price - market_data.price) / old_price > crate::common::THRESHOLD_RATE{
                 self.send_order(Order {
                     id: "test_bid".to_string(),
                     timestamp: 0,
                     bid_ask: crate::common::BidAsk::BID,
                     volume: 1.0,
+                    price: market_data.price,
                     symbol: crate::common::BTC_USDT.to_string(),
                 })
-            } else if market_data.price > crate::common::UPPER_BOUND_PRICE {
+            } else if (market_data.price - old_price) / old_price > crate::common::THRESHOLD_RATE {
                 self.send_order(Order {
                     id: "test_ask".to_string(),
                     timestamp: 0,
                     bid_ask: crate::common::BidAsk::ASK,
                     volume: 1.0,
+                    price: market_data.price,
                     symbol: crate::common::BTC_USDT.to_string(),
                 })
             }
+            old_price = market_data.price;
+            thread::sleep(time::Duration::from_secs(60));
         }
     }
 
@@ -126,13 +136,13 @@ impl StrategyEngine {
         Ok(body)
     }
 
-    fn send_order(&self, order: Order){
+    fn send_order(&mut self, order: Order){
         //TODO: new an OperationEngine whenever send order? Might be not suitable
         let op = OperationEngine::new();
         if order.bid_ask == crate::common::BidAsk::BID {
-            op.bid(order)
+            op.bid(order, &mut self.account)
         } else if order.bid_ask == crate::common::BidAsk::ASK {
-            op.ask(order)
+            op.ask(order, &mut self.account)
         } else {
             log::error!("Unknown order type")
         }

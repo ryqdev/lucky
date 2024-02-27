@@ -1,3 +1,6 @@
+use crate::account::Account;
+use crate::common::BidAsk;
+use crate::strategy_engine::Order;
 
 #[derive(Debug)]
 pub struct OperationEngine {
@@ -12,16 +15,16 @@ impl OperationEngine{
         log::info!("OperationEngine is running, configuration is {:?}", &self);
     }
     // TODO: use polymorphism for bid and ask?
-    pub fn bid(&self, order: crate::strategy_engine::Order){
-        let balance = self.get_balance();
-        if balance >= order.volume {
-            self.place_order(order);
+    pub fn bid(&self, order: Order, account: &mut Account){
+        let balance = account.balance;
+        if balance >= order.volume * order.price {
+            self.place_order(order, account);
         }
     }
-    pub fn ask(&self, order: crate::strategy_engine::Order){
-        let position = self.get_position();
+    pub fn ask(&self, order: Order, account: &mut Account){
+        let position = account.position;
         if position >= order.volume {
-            self.place_order(order);
+            self.place_order(order, account);
         }
     }
     fn isfilled() -> bool{
@@ -35,8 +38,14 @@ impl OperationEngine{
         return 100.0
     }
 
-    fn place_order(&self, order: crate::strategy_engine::Order) {
-        // send to banance
+    fn place_order(&self, order: crate::strategy_engine::Order, account: &mut Account) {
+        if order.bid_ask == BidAsk::BID {
+            account.balance -= order.price * order.volume;
+            account.position += order.volume;
+        } else if order.bid_ask == BidAsk::ASK {
+            account.position -= order.volume;
+            account.balance += order.price * order.volume;
+        }
         log::info!("send order: {:?}", order)
     }
 }

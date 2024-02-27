@@ -10,8 +10,8 @@ use account::Account;
 
 fn main() {
     env_logger::init();
-    let account = Account::new(100.0, 100.0);
+    let mut account = Account::new(520000.0, 10.0);
     let strategy = Strategy::new(5.0, 5.0);
-    let engine = StrategyEngine::new(strategy);
+    let mut engine = StrategyEngine::new(strategy, account);
     engine.run();
 }

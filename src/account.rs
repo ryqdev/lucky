@@ -1,7 +1,7 @@
 
 pub struct Account{
-    balance: f32,
-    position: f32,
+    pub(crate) balance: f32,
+    pub(crate) position: f32,
     gain: f32,
     alpha: f32,
     beta:f32,
