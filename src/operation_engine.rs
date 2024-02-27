@@ -33,11 +33,9 @@ impl OperationEngine{
     fn get_balance(&self) -> f32 {
         return 100.0
     }
-
     fn get_position(&self) -> f32 {
         return 100.0
     }
-
     fn place_order(&self, order: crate::strategy_engine::Order, account: &mut Account) {
         if order.bid_ask == BidAsk::BID {
             account.balance -= order.price * order.volume;

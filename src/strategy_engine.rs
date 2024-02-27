@@ -5,7 +5,7 @@ use serde::Deserialize;
 use crate::account::Account;
 use crate::operation_engine::OperationEngine;
 use crate::strategy::Strategy;
-
+use crate::common::BidAsk;
 
 error_chain! {
     foreign_links {
@@ -18,16 +18,16 @@ error_chain! {
 pub struct Order{
     id: String,
     timestamp: i64,
-    pub(crate) bid_ask: crate::common::BidAsk,
-    pub(crate) volume: f32,
-    pub(crate) price: f32,
+    pub bid_ask: BidAsk,
+    pub volume: f32,
+    pub price: f32,
     symbol: String
 }
 
-pub(crate) struct MarketData {
+pub struct MarketData {
     symbol: String,
     timestamp: i64,
-    pub(crate) price: f32,
+    pub price: f32,
     order_book: OrderBook,
 }
 
@@ -36,8 +36,6 @@ struct OrderBook {
     ask_volume_list:Vec<i32>,
     price_list:Vec<i32>
 }
-
-
 
 #[derive(Deserialize)]
 struct FetchPrice {
