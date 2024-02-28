@@ -1,10 +1,10 @@
 use std::io::Read;
 use std::{thread, time};
-use error_chain::error_chain;
 use serde::Deserialize;
 use crate::account::Account;
 use crate::operation_engine::OperationEngine;
 use crate::strategy::Strategy;
+<<<<<<< HEAD
 use crate::common::BidAsk;
 
 error_chain! {
@@ -13,6 +13,8 @@ error_chain! {
         HttpRequest(reqwest::Error);
     }
 }
+=======
+>>>>>>> b68201d (use anyhow)
 
 #[derive(Debug)]
 pub struct Order{
@@ -58,13 +60,13 @@ impl StrategyEngine {
         }
     }
 
-    pub fn run(&mut self){
+    pub fn run(&mut self) -> anyhow::Result<()>{
         log::info!("StrategyEngine is running, the strategy is {:?}", self.strategy);
         let mut old_price = 50000.0;
         loop{
-            let market_data = self.fetch_market_data();
+            let market_data = self.fetch_market_data()?;
             log::info!("Balance is {}", self.account.balance);
-            log::info!("Total Cap is {}", self.account.balance + self.account.position * market_data.price);
+            log::info!("Total Assets is {}", self.account.balance + self.account.position * market_data.price);
             log::info!("old price is {}, current price is {}", old_price, market_data.price);
             if (old_price - market_data.price) / old_price > crate::common::THRESHOLD_RATE{
                 self.send_order(Order {
@@ -90,11 +92,8 @@ impl StrategyEngine {
         }
     }
 
-    fn fetch_market_data(&self) -> MarketData {
-        let body = self.fetch_price().unwrap_or_else(|error| {
-            log::error!("fetch price failed, error: {}", error);
-            String::from(crate::common::ERROR_FETCH_DATA)
-        });
+    fn fetch_market_data(&self) -> anyhow::Result<MarketData> {
+        let body = self.fetch_price()?;
 
         if body != crate::common::ERROR_FETCH_DATA {
             log::info!("Fetch: {}", body);
@@ -109,7 +108,7 @@ impl StrategyEngine {
             log::info!("Price: {}", price);
         }
 
-        MarketData {
+        Ok(MarketData {
             symbol: crate::common::BTC_USDT.to_string(),
             timestamp: 0,
             price,
@@ -118,7 +117,7 @@ impl StrategyEngine {
                 ask_volume_list: vec![],
                 price_list: vec![],
             },
-        }
+        })
     }
 
     fn fetch_price_from_json(&self, body: &str) -> serde_json::Result<(f32)> {
@@ -126,7 +125,7 @@ impl StrategyEngine {
         Ok((fp.price).parse().unwrap())
     }
 
-    fn fetch_price(&self) -> Result<String> {
+    fn fetch_price(&self) -> anyhow::Result<String> {
         let mut res = reqwest::blocking::get("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT")?;
         let mut body = String::new();
         res.read_to_string(&mut body)?;
