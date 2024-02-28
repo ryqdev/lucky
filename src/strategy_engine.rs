@@ -4,23 +4,14 @@ use serde::Deserialize;
 use crate::account::Account;
 use crate::operation_engine::OperationEngine;
 use crate::strategy::Strategy;
-<<<<<<< HEAD
 use crate::common::BidAsk;
 
-error_chain! {
-    foreign_links {
-        Io(std::io::Error);
-        HttpRequest(reqwest::Error);
-    }
-}
-=======
->>>>>>> b68201d (use anyhow)
 
 #[derive(Debug)]
 pub struct Order{
     id: String,
     timestamp: i64,
-    pub bid_ask: BidAsk,
+    pub(crate) bid_ask: BidAsk,
     pub volume: f32,
     pub price: f32,
     symbol: String
