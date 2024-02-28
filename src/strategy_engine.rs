@@ -6,7 +6,6 @@ use crate::operation_engine::OperationEngine;
 use crate::strategy::Strategy;
 use crate::common::BidAsk;
 
-
 #[derive(Debug)]
 pub struct Order{
     id: String,
