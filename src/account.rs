@@ -1,24 +1,25 @@
+use rust_decimal::Decimal;
 
 pub struct Account{
-    pub(crate) balance: f32,
-    pub(crate) position: f32,
-    gain: f32,
-    alpha: f32,
-    beta:f32,
-    sharp:f32,
-    max_withdraw: f32,
+    pub(crate) balance: Decimal,
+    pub(crate) position: Decimal,
+    gain:  Decimal,
+    alpha:  Decimal,
+    beta: Decimal,
+    sharp: Decimal,
+    max_withdraw:  Decimal,
 }
 
 impl Account {
-    pub fn new(balance: f32, position: f32) -> Account {
+    pub fn new(balance:  Decimal, position:  Decimal) -> Account {
         Account{
             balance,
             position,
-            gain: 0.0,
-            alpha: 0.0,
-            beta: 0.0,
-            sharp: 0.0,
-            max_withdraw: 0.0,
+            gain: Default::default(),
+            alpha: Default::default(),
+            beta: Default::default(),
+            sharp: Default::default(),
+            max_withdraw: Default::default(),
         }
     }
 }
