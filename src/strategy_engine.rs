@@ -85,18 +85,7 @@ impl StrategyEngine {
     fn fetch_market_data(&self) -> anyhow::Result<MarketData> {
         let body = self.fetch_price()?;
 
-        if body != crate::common::ERROR_FETCH_DATA {
-            log::info!("Fetch: {}", body);
-        }
-
-        let price = self.fetch_price_from_json(&body).unwrap_or_else(|error| {
-            log::error!("parse json failed, error: {}", error);
-            crate::common::ERROR_PRICE
-        } );
-
-        if price != crate::common::ERROR_PRICE {
-            log::info!("Price: {}", price);
-        }
+        let price = self.fetch_price_from_json(&body)?;
 
         Ok(MarketData {
             symbol: crate::common::BTC_USDT.to_string(),

@@ -5,7 +5,6 @@ pub(crate) const BINANCE_PRICE_API: &str = "https://api.binance.com/api/v3/ticke
 pub(crate) const BINANCE_ORDER_API: &str = "";
 
 pub(crate) const ERROR_FETCH_DATA: &str = "Error fetching price";
-pub(crate) const ERROR_PRICE: f32 = -1.0;
 
 pub(crate) const THRESHOLD_RATE: f32 = 0.01;
 
